@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: llmobs-backend
+spec:
+  selector:
+    app: llmobs-backend
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: llmobs-frontend
+spec:
+  selector:
+    app: llmobs-frontend
+  ports:
+    - name: http
+      port: 80
+      targetPort: 80

@@ -1,0 +1,83 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: llm-observability-platform
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:llmobs}
+    username: ${DB_USER:llmobs}
+    password: ${DB_PASSWORD:llmobs}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP:localhost:19092}
+    consumer:
+      group-id: llmobs-processors
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+    admin:
+      fail-fast: false
+    listener:
+      ack-mode: record
+      missing-topics-fatal: false
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,metrics
+  endpoint:
+    health:
+      show-details: when_authorized
+  metrics:
+    tags:
+      application: ${spring.application.name}
+
+llmobs:
+  jwt:
+    secret: ${JWT_SECRET:change-me-to-a-very-long-secret-key-for-hs256-min-256-bits!!}
+    expiration-ms: 86400000
+  rate-limit:
+    traces-per-minute: ${RATE_LIMIT_TRACES:120}
+  kafka:
+    topics:
+      traces-ingested: traces.ingested
+      traces-processed: traces.processed
+      traces-dlq: traces.dlq
+      evals-requested: evals.requested
+  openai:
+    api-key: ${OPENAI_API_KEY:}
+    model: ${OPENAI_MODEL:gpt-4o-mini}
+  alerts:
+    slack-webhook-url: ${SLACK_WEBHOOK_URL:}
+  cors:
+    allowed-origins: ${CORS_ORIGINS:http://localhost:5173,http://localhost:3000,http://localhost}
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+
+logging:
+  level:
+    com.llmobs: INFO
+    org.springframework.kafka: WARN
